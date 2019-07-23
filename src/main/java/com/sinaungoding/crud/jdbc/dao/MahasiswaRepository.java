@@ -13,19 +13,13 @@
 package com.sinaungoding.crud.jdbc.dao;
 
 import com.sinaungoding.crud.jdbc.entitas.Mahasiswa;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -38,16 +32,8 @@ public class MahasiswaRepository implements MahasiswaDao {
     private final String SELECT_ALL = "SELECT nim,nama,ipk,jurusan FROM mahasiswa";
     private final String SELECT_BY_NIM = "SELECT nim,nama,ipk,jurusan FROM mahasiswa WHERE nim=?";
 
-    private static Logger LOGGER = LoggerFactory.getLogger(MahasiswaRepository.class.getName());
-
-    @Autowired
-    private DataSource dataSource;
-
     @Autowired
     private JdbcTemplate jdbcTemplate;
-
-    private Connection connection;
-    private PreparedStatement preparedStatement;
 
     @Override
     public boolean insert(Mahasiswa mahasiswa) {
