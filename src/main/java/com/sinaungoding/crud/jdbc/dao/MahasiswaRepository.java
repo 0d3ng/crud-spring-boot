@@ -14,16 +14,18 @@ package com.sinaungoding.crud.jdbc.dao;
 
 import com.sinaungoding.crud.jdbc.entitas.Mahasiswa;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
+import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
 @Repository
-public class MahasiswaRepository implements MahasiswaDao {
+public class MahasiswaRepository extends JdbcDaoSupport implements MahasiswaDao {
 
     private final String INSERT = "INSERT INTO mahasiswa (nim, nama, ipk, jurusan) "
             + "	VALUES (?,?,?,?)";
@@ -33,31 +35,36 @@ public class MahasiswaRepository implements MahasiswaDao {
     private final String SELECT_BY_NIM = "SELECT nim,nama,ipk,jurusan FROM mahasiswa WHERE nim=?";
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private DataSource dataSource;
+
+    @PostConstruct
+    public void init() {
+        setDataSource(dataSource);
+    }
 
     @Override
     public boolean insert(Mahasiswa mahasiswa) {
-        return jdbcTemplate.update(INSERT, new Object[]{mahasiswa.getNim(), mahasiswa.getNama(), mahasiswa.getIpk(), mahasiswa.getJurusan()}) > 0 ? true : false;
+        return getJdbcTemplate().update(INSERT, new Object[]{mahasiswa.getNim(), mahasiswa.getNama(), mahasiswa.getIpk(), mahasiswa.getJurusan()}) > 0 ? true : false;
     }
 
     @Override
     public boolean update(Mahasiswa mahasiswa) {
-        return jdbcTemplate.update(UPDATE, new Object[]{mahasiswa.getNama(), mahasiswa.getIpk(), mahasiswa.getJurusan(), mahasiswa.getNim()}) > 0 ? true : false;
+        return getJdbcTemplate().update(UPDATE, new Object[]{mahasiswa.getNama(), mahasiswa.getIpk(), mahasiswa.getJurusan(), mahasiswa.getNim()}) > 0 ? true : false;
     }
 
     @Override
     public boolean delete(Mahasiswa mahasiswa) {
-        return jdbcTemplate.update(DELETE, new Object[]{mahasiswa.getNim()}) > 0 ? true : false;
+        return getJdbcTemplate().update(DELETE, new Object[]{mahasiswa.getNim()}) > 0 ? true : false;
     }
 
     @Override
     public Mahasiswa getByNim(String nim) {
-        return jdbcTemplate.queryForObject(SELECT_BY_NIM, new Object[]{nim}, new MahasiswaRowMapper());
+        return getJdbcTemplate().queryForObject(SELECT_BY_NIM, new Object[]{nim}, new MahasiswaRowMapper());
     }
 
     @Override
     public List<Mahasiswa> getAll() {
-        return jdbcTemplate.query(SELECT_ALL, new MahasiswaRowMapper());
+        return getJdbcTemplate().query(SELECT_ALL, new MahasiswaRowMapper());
     }
 
     private class MahasiswaRowMapper implements RowMapper<Mahasiswa> {
