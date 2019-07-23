@@ -16,6 +16,8 @@ import com.sinaungoding.crud.jdbc.entitas.Mahasiswa;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
@@ -41,188 +43,47 @@ public class MahasiswaRepository implements MahasiswaDao {
     @Autowired
     private DataSource dataSource;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     private Connection connection;
     private PreparedStatement preparedStatement;
 
     @Override
     public boolean insert(Mahasiswa mahasiswa) {
-        try {
-            connection = dataSource.getConnection();
-            preparedStatement = connection.prepareStatement(INSERT);
-            preparedStatement.setString(1, mahasiswa.getNim());
-            preparedStatement.setString(2, mahasiswa.getNama());
-            preparedStatement.setFloat(3, mahasiswa.getIpk());
-            preparedStatement.setString(4, mahasiswa.getJurusan());
-            return preparedStatement.executeUpdate() > 0 ? true : false;
-        } catch (SQLException e) {
-            LOGGER.error(null, e);
-        } finally {
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (SQLException e) {
-                    LOGGER.error(null, e);
-                }
-            }
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    LOGGER.error(null, e);
-                }
-            }
-
-        }
-        return false;
+        return jdbcTemplate.update(INSERT, new Object[]{mahasiswa.getNim(), mahasiswa.getNama(), mahasiswa.getIpk(), mahasiswa.getJurusan()}) > 0 ? true : false;
     }
 
     @Override
     public boolean update(Mahasiswa mahasiswa) {
-        try {
-            connection = dataSource.getConnection();
-            preparedStatement = connection.prepareStatement(UPDATE);
-            preparedStatement.setString(1, mahasiswa.getNama());
-            preparedStatement.setFloat(2, mahasiswa.getIpk());
-            preparedStatement.setString(3, mahasiswa.getJurusan());
-            preparedStatement.setString(4, mahasiswa.getNim());
-            return preparedStatement.executeUpdate() > 0 ? true : false;
-        } catch (SQLException e) {
-            LOGGER.error(null, e);
-        } finally {
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (SQLException e) {
-                    LOGGER.error(null, e);
-                }
-            }
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    LOGGER.error(null, e);
-                }
-            }
-        }
-        return false;
+        return jdbcTemplate.update(UPDATE, new Object[]{mahasiswa.getNama(), mahasiswa.getIpk(), mahasiswa.getJurusan(), mahasiswa.getNim()}) > 0 ? true : false;
     }
 
     @Override
     public boolean delete(Mahasiswa mahasiswa) {
-        try {
-            connection = dataSource.getConnection();
-            preparedStatement = connection.prepareStatement(DELETE);
-            preparedStatement.setString(1, mahasiswa.getNim());
-            return preparedStatement.executeUpdate() > 0 ? true : false;
-        } catch (SQLException e) {
-            LOGGER.error(null, e);
-        } finally {
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (SQLException e) {
-                    LOGGER.error(null, e);
-                }
-            }
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    LOGGER.error(null, e);
-                }
-            }
-
-        }
-        return false;
+        return jdbcTemplate.update(DELETE, new Object[]{mahasiswa.getNim()}) > 0 ? true : false;
     }
 
     @Override
     public Mahasiswa getByNim(String nim) {
-        ResultSet resultSet = null;
-        try {
-            Mahasiswa mahasiswa = new Mahasiswa();
-            connection = dataSource.getConnection();
-            preparedStatement = connection.prepareStatement(SELECT_BY_NIM);
-            preparedStatement.setString(1, nim);
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                mahasiswa.setIpk(resultSet.getFloat("ipk"));
-                mahasiswa.setJurusan(resultSet.getString("jurusan"));
-                mahasiswa.setNama(resultSet.getString("nama"));
-                mahasiswa.setNim(resultSet.getString("nim"));
-            }
-            return mahasiswa;
-        } catch (SQLException e) {
-            LOGGER.error(null, e);
-        } finally {
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (SQLException e) {
-                    LOGGER.error(null, e);
-                }
-            }
-            if (resultSet != null) {
-                try {
-                    resultSet.close();
-                } catch (SQLException e) {
-                    LOGGER.error(null, e);
-                }
-            }
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    LOGGER.error(null, e);
-                }
-            }
-
-        }
-        return null;
+        return jdbcTemplate.queryForObject(SELECT_BY_NIM, new Object[]{nim}, new MahasiswaRowMapper());
     }
 
     @Override
     public List<Mahasiswa> getAll() {
-        ResultSet resultSet = null;
-        try {
-            List<Mahasiswa> mahasiswas = new ArrayList<>();
-            connection = dataSource.getConnection();
-            preparedStatement = connection.prepareStatement(SELECT_ALL);
-            resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                Mahasiswa mahasiswa = new Mahasiswa();
-                mahasiswa.setIpk(resultSet.getFloat("ipk"));
-                mahasiswa.setJurusan(resultSet.getString("jurusan"));
-                mahasiswa.setNama(resultSet.getString("nama"));
-                mahasiswa.setNim(resultSet.getString("nim"));
-            }
-            return mahasiswas;
-        } catch (SQLException e) {
-            LOGGER.error(null, e);
-        } finally {
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (SQLException e) {
-                    LOGGER.error(null, e);
-                }
-            }
-            if (resultSet != null) {
-                try {
-                    resultSet.close();
-                } catch (SQLException e) {
-                    LOGGER.error(null, e);
-                }
-            }
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    LOGGER.error(null, e);
-                }
-            }
+        return jdbcTemplate.query(SELECT_ALL, new MahasiswaRowMapper());
+    }
 
+    private class MahasiswaRowMapper implements RowMapper<Mahasiswa> {
+
+        @Override
+        public Mahasiswa mapRow(ResultSet resultSet, int i) throws SQLException {
+            Mahasiswa mahasiswa = new Mahasiswa();
+            mahasiswa.setNim(resultSet.getString("nim"));
+            mahasiswa.setNama(resultSet.getString("nama"));
+            mahasiswa.setJurusan(resultSet.getString("jurusan"));
+            mahasiswa.setIpk(resultSet.getFloat("ipk"));
+            return mahasiswa;
         }
-        return null;
     }
 }
